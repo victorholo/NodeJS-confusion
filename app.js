@@ -1,10 +1,12 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+//var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
+var passport = require('passport');
+require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -14,7 +16,7 @@ var leaderRouter = require('./routes/leaderRouter');
 
 const mongoose = require('mongoose');
 
-const url = "mongodb://localhost:27017";
+const url = "mongodb://localhost:27017/conFusion";
 
 const connect = mongoose.connect(url);
 
@@ -43,13 +45,16 @@ app.use(session({
   store: new FileStore()
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 function auth(req, res, next){
   console.log(req.session);
 
-  if(req.session.user === 'authenticated'){
+  if(req.user){
     next();
   }else{
     var err = new Error("You are not authenticated");
